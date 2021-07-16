@@ -11,7 +11,16 @@ const commands = {
 
 const messageArchive = {};
 
-client.on("ready", () => console.log(`logged in as ${client.user.tag}`));
+client.on("ready", () => {
+  console.log(`logged in as ${client.user.tag}`);
+  client.user.setPresence({
+    status: "online", //You can show online, idle....
+    game: {
+      name: "Dolpins are hot", //The message shown
+      type: "WATCHING", //PLAYING: WATCHING: LISTENING: STREAMING:
+    },
+  });
+});
 
 client.on("message", (message) => {
   if (message.content === "ping") {
