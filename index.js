@@ -21,7 +21,7 @@ client.on("message", (message) => {
       message.content.includes(".addSimpCommand") &&
       message.member.roles.cache.find((r) => r.name.toLowerCase() === "admin")
     ) {
-      if (message.content.split(" ").length !== 3) {
+      if (message.content.split(" ").length < 2) {
         message.reply(
           "Wrong Syntax, please try: .addSimpCommand <command name> <command output>"
         );
@@ -30,7 +30,7 @@ client.on("message", (message) => {
       } else {
         let newCommand = message.content.split(" ")[1];
         newCommand[0] === "." ? newCommand : (newCommand = "." + newCommand);
-        const newCommandOutput = message.content.split(" ")[2];
+        const newCommandOutput = message.content.split(" ").slice(2).join(" ");
 
         commands[newCommand] = newCommandOutput;
         message.reply("new message added");
