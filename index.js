@@ -5,6 +5,8 @@ const client = new Discord.Client();
 const commands = {
   ".simp":
     "https://i1.sndcdn.com/artworks-i0tlutgH246RaMuh-9ip1iA-t500x500.jpg",
+  ".inviteLink":
+    "https://discord.com/oauth2/authorize?client_id=865441338623131668&permissions=519232&scope=bot",
 };
 
 const messageArchive = {};
