@@ -115,8 +115,10 @@ client.on('message', (message) => {
 
       if (msgInRowCount === 3 && lastMessage === 'pp') {
         message.channel.send('P FUCKING P WOOOOOOOOOOO!!!');
+        msgInRowCount = 0;
       } else if (msgInRowCount === 3) {
         message.channel.send(lastMessage.toLocaleUpperCase());
+        msgInRowCount = 0;
       }
     } else {
       lastMessage = message.content;
