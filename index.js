@@ -135,7 +135,9 @@ client.on('message', (message) => {
     }
 
     if (message.content.includes('phil')) {
-      message.channel.send(':antiPhil:');
+      message.channel.send(
+        'https://cdn.discordapp.com/emojis/844940746199924747.png?v=1'
+      );
       return;
     }
 
