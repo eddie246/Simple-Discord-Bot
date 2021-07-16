@@ -11,6 +11,9 @@ const commands = {
 
 const messageArchive = {};
 
+let lastMessage = '';
+let msgInRowCount = 0;
+
 client.on('ready', () => {
   console.log(`logged in as ${client.user.tag}`);
   client.user.setPresence({
@@ -93,9 +96,6 @@ client.on('message', (message) => {
       return;
     }
   } else {
-    let lastMessage = '';
-    let msgInRowCount = 0;
-
     if (messageArchive[message.author]) {
       let authorMessages = messageArchive[message.author];
 
