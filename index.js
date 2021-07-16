@@ -15,7 +15,7 @@ client.on("ready", () => {
   console.log(`logged in as ${client.user.tag}`);
   client.user.setPresence({
     status: "online", //You can show online, idle....
-    game: {
+    activity: {
       name: "Dolpins are hot", //The message shown
       type: "WATCHING", //PLAYING: WATCHING: LISTENING: STREAMING:
     },
