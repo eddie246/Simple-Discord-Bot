@@ -17,7 +17,6 @@ client.on("message", (message) => {
   }
 
   if (message.content[0] === ".") {
-    console.log(commands);
     if (
       message.content.includes(".addSimpCommand") &&
       message.member.roles.cache.find((r) => r.name.toLowerCase() === "admin")
