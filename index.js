@@ -11,7 +11,7 @@ const messageArchive = {};
 
 client.on("ready", () => console.log(`logged in as ${client.user.tag}`));
 
-client.on("message", async (message) => {
+client.on("message", (message) => {
   if (message.content === "ping") {
     message.reply("pong");
   }
