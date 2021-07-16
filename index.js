@@ -1,17 +1,15 @@
 require('dotenv').config();
 const Discord = require('discord.js');
 const client = new Discord.Client();
+const fs = require('fs');
 
-const commands = {
-  '.simp':
-    'https://i1.sndcdn.com/artworks-i0tlutgH246RaMuh-9ip1iA-t500x500.jpg',
-  '.inviteLink':
-    'https://discord.com/oauth2/authorize?client_id=865441338623131668&permissions=519232&scope=bot',
-};
+const commands = JSON.parse(fs.readFileSync('botCommands.json', 'utf-8'));
+console.log(commands);
 
 const messageArchive = {};
 
 let lastMessage = '';
+let lastUser = '';
 let msgInRowCount = 0;
 
 client.on('ready', () => {
@@ -26,7 +24,7 @@ client.on('ready', () => {
 });
 
 client.on('message', (message) => {
-  if (message.content[0] === '.') {
+  if (message.content.includes('.')) {
     if (message.content === '.help') {
       message.reply(
         `1. .addSimpCommand: adds a simple . command | SYNTAX: .addSimpCommand <command name> <command output>
@@ -42,8 +40,8 @@ client.on('message', (message) => {
     }
 
     if (
-      message.content.includes('.addSimpCommand') &&
-      message.member.roles.cache.find((r) => r.name.toLowerCase() === 'admin')
+      message.content.includes('.addSimpCommand')
+      // && message.member.roles.cache.find((r) => r.name.toLowerCase() === 'admin')
     ) {
       if (message.content.split(' ').length < 2) {
         message.reply(
@@ -57,7 +55,9 @@ client.on('message', (message) => {
         const newCommandOutput = message.content.split(' ').slice(2).join(' ');
 
         commands[newCommand] = newCommandOutput;
-        message.reply('new message added');
+        message.reply('new command added');
+
+        fs.writeFileSync('botCommands.json', JSON.stringify(commands));
         return;
       }
     }
@@ -110,7 +110,11 @@ client.on('message', (message) => {
       messageArchive[message.author] = [message.content];
     }
 
-    if (lastMessage === message.content) {
+    if (
+      lastMessage === message.content &&
+      message.author !== lastUser &&
+      message.author.bot === false
+    ) {
       msgInRowCount++;
 
       if (msgInRowCount === 2 && lastMessage === 'pp') {
@@ -122,10 +126,23 @@ client.on('message', (message) => {
       }
     } else {
       lastMessage = message.content;
+      lastUser = message.author;
     }
 
-    if (message.content.includes('dolphin')) {
+    if (message.content.toLocaleLowerCase().includes('dolphin')) {
       message.channel.send(':peanuts:');
+      return;
+    }
+
+    if (message.content.includes('phil')) {
+      message.channel.send(':antiPhil:');
+      return;
+    }
+
+    if (message.content.includes('duck')) {
+      if (Math.random() * 3 > 2) {
+        message.channel.send('goose');
+      }
       return;
     }
   }
