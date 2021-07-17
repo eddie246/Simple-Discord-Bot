@@ -1,10 +1,22 @@
 require('dotenv').config();
 const Discord = require('discord.js');
 const client = new Discord.Client();
-const fs = require('fs');
+const mongoose = require('mongoose');
+const Schema = mongoose.Schema;
 
-const commands = JSON.parse(fs.readFileSync('botCommands.json', 'utf-8'));
-console.log(commands);
+mongoose
+  .connect(process.env.MONGOURI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  })
+  .then(() => console.log('connected to the databse'))
+  .catch((err) => console.log('Error occured connecting to database: ', err));
+
+const commandSchema = new Schema({
+  cmds: String,
+});
+
+const Command = mongoose.model('command', commandSchema);
 
 const messageArchive = {};
 
@@ -23,7 +35,10 @@ client.on('ready', () => {
   });
 });
 
-client.on('message', (message) => {
+client.on('message', async (message) => {
+  const doc = await Command.find({});
+  const docParsed = JSON.parse(doc[0].cmds);
+
   if (message.content.includes('.')) {
     if (message.content === '.help') {
       message.reply(
@@ -50,14 +65,27 @@ client.on('message', (message) => {
 
         return;
       } else {
+        // Command.create({
+        //   cmds: JSON.stringify({
+        //     '.simp':
+        //       'https://i1.sndcdn.com/artworks-i0tlutgH246RaMuh-9ip1iA-t500x500.jpg',
+        //     '.inviteLink':
+        //       'https://discord.com/oauth2/authorize?client_id=865441338623131668&permissions=519232&scope=bot',
+        //     '.hello': 'world',
+        //     '.yes': 'no',
+        //   }),
+        // });
         let newCommand = message.content.split(' ')[1];
         newCommand[0] === '.' ? newCommand : (newCommand = '.' + newCommand);
         const newCommandOutput = message.content.split(' ').slice(2).join(' ');
 
-        commands[newCommand] = newCommandOutput;
+        docParsed[newCommand] = newCommandOutput;
         message.reply('new command added');
 
-        fs.writeFileSync('botCommands.json', JSON.stringify(commands));
+        await Command.updateOne(
+          {},
+          { $set: { cmds: JSON.stringify(docParsed) } }
+        );
         return;
       }
     }
@@ -91,8 +119,8 @@ client.on('message', (message) => {
       return;
     }
 
-    if (commands[message.content]) {
-      message.channel.send(commands[message.content]);
+    if (docParsed[message.content]) {
+      message.channel.send(docParsed[message.content]);
       return;
     }
   } else {
@@ -135,9 +163,7 @@ client.on('message', (message) => {
     }
 
     if (message.content.includes('phil')) {
-      message.channel.send(
-        'https://cdn.discordapp.com/emojis/844940746199924747.png?v=1'
-      );
+      message.channel.send(':antiPhil:');
       return;
     }
 
