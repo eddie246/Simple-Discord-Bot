@@ -117,7 +117,7 @@ client.on('message', async (message) => {
     }
 
     if (message.content.includes('.allSimpCommands')) {
-      message.reply(JSON.stringify(commands, null, 2));
+      message.reply(JSON.stringify(docParsed, null, 2));
       return;
     }
 
