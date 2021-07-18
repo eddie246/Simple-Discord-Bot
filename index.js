@@ -212,6 +212,10 @@ client.on("message", async (message) => {
     } else if (message.content.toLocaleLowerCase().includes("struggling")) {
       message.reply("striggling*");
     }
+
+    if (message.content.includes(" 69 ")) {
+      message.channel.send("nice");
+    }
   }
 });
 
