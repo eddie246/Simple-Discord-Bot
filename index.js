@@ -213,7 +213,7 @@ client.on("message", async (message) => {
       message.reply("striggling*");
     }
 
-    if (message.content.includes(" 69 ")) {
+    if (message.content.includes(" 69 ") || message.content === "69") {
       message.channel.send("nice");
     }
   }
