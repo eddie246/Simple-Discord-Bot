@@ -36,6 +36,8 @@ client.on('ready', () => {
 });
 
 client.on('message', async (message) => {
+  if (message.author.bot) return;
+
   const doc = await Command.find({});
   const docParsed = JSON.parse(doc[0].cmds);
 
@@ -55,7 +57,7 @@ client.on('message', async (message) => {
     }
 
     if (
-      message.content.includes('.addSimpCommand')
+      message.content.slice(0, 15) === '.addSimpCommand'
       // && message.member.roles.cache.find((r) => r.name.toLowerCase() === 'admin')
     ) {
       if (message.content.split(' ').length < 2) {
@@ -124,6 +126,22 @@ client.on('message', async (message) => {
       return;
     }
   } else {
+    if (message.mentions.has(client.user.id)) {
+      if (
+        message.content.includes('@here') ||
+        message.content.includes('@everyone')
+      )
+        return;
+
+      if (message.content.toLocaleLowerCase() === 'fuck you') {
+        message.reply(
+          'i cri now u hapy? y yu alwys buly im just a robot i do wht i told y u mak me sad'
+        );
+      } else if (message.content.toLocaleLowerCase() === 'i love you') {
+        message.reply('I only think of you as a friend...');
+      }
+    }
+
     if (messageArchive[message.author]) {
       let authorMessages = messageArchive[message.author];
 
@@ -145,10 +163,10 @@ client.on('message', async (message) => {
     ) {
       msgInRowCount++;
 
-      if (msgInRowCount === 2 && lastMessage === 'pp') {
+      if (msgInRowCount === 3 && lastMessage === 'pp') {
         message.channel.send('P FUCKING P WOOOOOOOOOOO!!!');
         msgInRowCount = 0;
-      } else if (msgInRowCount === 2) {
+      } else if (msgInRowCount === 3) {
         message.channel.send(lastMessage.toLocaleUpperCase());
         msgInRowCount = 0;
       }
@@ -159,19 +177,36 @@ client.on('message', async (message) => {
 
     if (message.content.toLocaleLowerCase().includes('dolphin')) {
       message.channel.send(':peanuts:');
-      return;
     }
 
     if (message.content.includes('phil')) {
       message.channel.send(':antiPhil:');
-      return;
     }
 
     if (message.content.includes('duck')) {
       if (Math.random() * 3 > 2) {
         message.channel.send('goose');
       }
-      return;
+    }
+
+    if (
+      message.content.toLowerCase().includes('whos joe') ||
+      message.content.toLowerCase().includes('who is joe')
+    ) {
+      message.channel.send('JOE MAMA');
+    }
+
+    if (
+      message.content.toLocaleLowerCase().includes('bukkake', 'bukake') ||
+      message.content.toLocaleLowerCase().includes('bukake')
+    ) {
+      message.channel.send(':eggplant: :sweat_drops: :dog:');
+    }
+
+    if (message.content.toLocaleLowerCase().includes('struggle')) {
+      message.reply('striggle*');
+    } else if (message.content.toLocaleLowerCase().includes('struggling')) {
+      message.reply('striggling*');
     }
   }
 });
