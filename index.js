@@ -224,6 +224,10 @@ client.on('message', async (message) => {
     if (message.content.toLowerCase().includes('ink farts')) {
       message.channel.send(':pen_fountain: :dash:');
     }
+
+    if (message.content.includes('kinky')) {
+      message.channel.send('( ͡° ͜ʖ ͡°)');
+    }
   }
 });
 
