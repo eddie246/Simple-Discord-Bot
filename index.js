@@ -125,6 +125,19 @@ client.on('message', async (message) => {
       return;
     }
 
+    if (message.content === '.wednesday') {
+      const dayOfWeek = new Date().getDay();
+
+      if (dayOfWeek === 3) {
+        message.channel.send(
+          'https://i.kym-cdn.com/entries/icons/original/000/020/016/wednesdaymydudeswide.jpg'
+        );
+      } else {
+        message.channel.send('https://i.redd.it/eqtja26y4yz61.png');
+      }
+      return;
+    }
+
     if (docParsed[message.content]) {
       message.channel.send(docParsed[message.content]);
       return;
@@ -221,7 +234,7 @@ client.on('message', async (message) => {
       message.channel.send('stay in drugs, dont do school');
     }
 
-    if (message.content.toLowerCase().includes('ink farts')) {
+    if (message.content.toLowerCase().includes('ink_farts')) {
       message.channel.send(':pen_fountain: :dash:');
     }
 
