@@ -129,10 +129,10 @@ client.on('message', async (message) => {
       let dayOfWeek = new Date().toLocaleString('en-US', {
         timeZone: 'America/New_York',
       });
-      dayOfWeek = new Date(todayNY);
-      console.log(dayOfWeek);
+      dayOfWeek = new Date(dayOfWeek);
+      console.log(dayOfWeek.getDay());
 
-      if (dayOfWeek === 3) {
+      if (dayOfWeek.getDay() === 3) {
         message.channel.send(
           'https://i.kym-cdn.com/entries/icons/original/000/020/016/wednesdaymydudeswide.jpg'
         );
