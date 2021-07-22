@@ -126,7 +126,11 @@ client.on('message', async (message) => {
     }
 
     if (message.content === '.wednesday') {
-      const dayOfWeek = new Date().getDay();
+      let dayOfWeek = new Date().toLocaleString('en-US', {
+        timeZone: 'America/New_York',
+      });
+      dayOfWeek = new Date(todayNY);
+      console.log(dayOfWeek);
 
       if (dayOfWeek === 3) {
         message.channel.send(
