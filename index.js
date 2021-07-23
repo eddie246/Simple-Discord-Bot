@@ -1,6 +1,9 @@
 require('dotenv').config();
 const Discord = require('discord.js');
 const client = new Discord.Client();
+
+const cleverbot = require('cleverbot-free');
+
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
@@ -49,6 +52,12 @@ client.on('message', async (message) => {
          3. .contribute: Github repo, please help make gooder | Syntax: .contribute
          4. .simp: You a simp | Syntax: .simp
         `
+      );
+    }
+
+    if (message.content.includes('.ai')) {
+      cleverbot(message.content.slice(2)).then((response) =>
+        message.reply(response)
       );
     }
 
