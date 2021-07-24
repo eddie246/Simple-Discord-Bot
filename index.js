@@ -58,7 +58,7 @@ client.on("message", async (message) => {
 
     if (message.content.includes(".ai")) {
       cleverbot(message.content.slice(2), contex).then((response) => {
-        contex.concat([message.content, response]);
+        contex = contex.concat([message.content, response]);
         message.reply(response);
 
         if (contex.length >= 50) {
