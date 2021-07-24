@@ -53,16 +53,20 @@ client.on('message', async (message) => {
          4. .simp: You a simp | Syntax: .simp
         `
       );
+      return
     }
 
     if (message.content.includes('.ai')) {
       cleverbot(message.content.slice(2)).then((response) =>
         message.reply(response)
-      );
+      ).catch((err) => message.reply(err));
+
+      return
     }
 
     if (message.content === '.contribute') {
       message.reply('https://github.com/eddie246/Simple-Discord-Bot');
+      return
     }
 
     if (
@@ -209,10 +213,6 @@ client.on('message', async (message) => {
       message.channel.send(':peanuts:');
     }
 
-    if (message.content.includes('phil')) {
-      message.channel.send(':antiPhil:');
-    }
-
     if (message.content.includes('duck')) {
       if (Math.random() * 3 > 2) {
         message.channel.send('goose');
@@ -227,7 +227,7 @@ client.on('message', async (message) => {
     }
 
     if (
-      message.content.toLocaleLowerCase().includes('bukkake', 'bukake') ||
+      message.content.toLocaleLowerCase().includes('bukkake') ||
       message.content.toLocaleLowerCase().includes('bukake')
     ) {
       message.channel.send(':eggplant: :sweat_drops: :dog:');
