@@ -3,7 +3,7 @@ const Discord = require("discord.js");
 const client = new Discord.Client();
 
 const cleverbot = require("cleverbot-free");
-const contex = [];
+let contex = [];
 
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
