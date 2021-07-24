@@ -11,9 +11,12 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "atob": "^2.1.2",
+    "btoa": "^1.2.1",
     "cleverbot-free": "^1.1.6",
     "discord.js": "^12.5.3",
     "dotenv": "^10.0.0",
+    "gbajs": "^1.1.2",
     "mongoose": "^5.13.3"
   },
   "devDependencies": {

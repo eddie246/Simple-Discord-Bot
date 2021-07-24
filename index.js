@@ -1,10 +1,46 @@
+//node stuff
+const fs = require('fs');
 require('dotenv').config();
+const btoa = require('btoa');
+const atob = require('atob');
+
+//discord stuff
 const Discord = require('discord.js');
 const client = new Discord.Client();
 
+//Gba stuff
+const GameBoyAdvance = require('gbajs');
+const gba = new GameBoyAdvance();
+// let save;
+
+gba.logLevel = gba.LOG_ERROR;
+
+var biosBuf = fs.readFileSync('./node_modules/gbajs/resources/bios.bin');
+gba.setBios(biosBuf);
+gba.load;
+gba.setCanvasMemory();
+
+gba.loadRomFromFile(
+  'src/Pokemon - Fire Red Version (U) (V1.1).gba',
+  function (err, result) {
+    if (err) {
+      console.error('loadRom failed:', err);
+      process.exit(1);
+    }
+    // gba.loadSavedataFromFile('src/');
+    gba.runStable();
+    console.log('Game loaded');
+  }
+);
+
+let idx = 0;
+let keypad = gba.keypad;
+
+//cleverbot stuff
 const cleverbot = require('cleverbot-free');
 let contex = [];
 
+//mongodb stuff
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
@@ -45,7 +81,102 @@ client.on('message', async (message) => {
   const doc = await Command.find({});
   const docParsed = JSON.parse(doc[0].cmds);
 
+  function sendGBA() {
+    setTimeout(function () {
+      /* pngjs: https://github.com/lukeapage/pngjs */
+      var png = gba.screenshot();
+      png.pack().pipe(fs.createWriteStream('gba' + idx + '.png'));
+      message.channel.send('image placeholder', {
+        files: ['gba0.png'],
+      });
+    }, 500);
+  }
+
   if (message.content.includes('.')) {
+    /////////////////////////////////GBA STUFF///////////////////////////
+    if (message.content === '.a') {
+      keypad.press(keypad.A);
+      sendGBA();
+    } else if (message.content === '.b') {
+      keypad.press(keypad.B);
+      sendGBA();
+    } else if (message.content === '.b') {
+      keypad.press(keypad.B);
+      sendGBA();
+    } else if (message.content === '.select') {
+      keypad.press(keypad.SELECT);
+      sendGBA();
+    } else if (message.content === '.start') {
+      keypad.press(keypad.START);
+      sendGBA();
+    } else if (message.content === '.r') {
+      keypad.press(keypad.RIGHT);
+      sendGBA();
+    } else if (message.content === '.l') {
+      keypad.press(keypad.LEFT);
+      sendGBA();
+    } else if (message.content === '.u') {
+      keypad.press(keypad.UP);
+      sendGBA();
+    } else if (message.content === '.d') {
+      keypad.press(keypad.DOWN);
+      sendGBA();
+    } else if (message.content === '.sl') {
+      keypad.press(keypad.L);
+      sendGBA();
+    } else if (message.content === '.sr') {
+      keypad.press(keypad.R);
+      sendGBA();
+    } else if (message.content === '.save') {
+      let save = gba.mmu.save;
+
+      var data = [];
+      var b;
+      var wordstring = [];
+      var triplet;
+      for (var i = 0; i < save.view.byteLength; ++i) {
+        b = save.view.getUint8(i, true);
+        wordstring.push(String.fromCharCode(b));
+        while (wordstring.length >= 3) {
+          triplet = wordstring.splice(0, 3);
+          data.push(btoa(triplet.join('')));
+        }
+      }
+      if (wordstring.length) {
+        data.push(btoa(wordstring.join('')));
+      }
+      save = data.join('');
+
+      fs.writeFileSync('src/save.txt', save);
+    } else if (message.content === '.load') {
+      const save = fs.readFileSync('src/save.txt', 'utf-8');
+      const saveParsed = save;
+
+      var length = (save.length * 3) / 4;
+      if (save[save.length - 2] == '=') {
+        length -= 2;
+      } else if (save[save.length - 1] == '=') {
+        length -= 1;
+      }
+      var buffer = new ArrayBuffer(length);
+      var view = new Uint8Array(buffer);
+      var bits = save.match(/..../g);
+      for (var i = 0; i + 2 < length; i += 3) {
+        var s = atob(bits.shift());
+        view[i] = s.charCodeAt(0);
+        view[i + 1] = s.charCodeAt(1);
+        view[i + 2] = s.charCodeAt(2);
+      }
+      if (i < length) {
+        var s = atob(bits.shift());
+        view[i++] = s.charCodeAt(0);
+        if (s.length > 1) {
+          view[i++] = s.charCodeAt(1);
+        }
+      }
+      gba.mmu.loadSavedata(buffer);
+    }
+
     if (message.content === '.help') {
       message.reply(
         `1. .addSimpCommand: adds a simple . command | SYNTAX: .addSimpCommand <command name> <command output>
@@ -168,6 +299,8 @@ client.on('message', async (message) => {
       message.channel.send(docParsed[message.content]);
       return;
     }
+
+    ////////GBA STUFF////////////
   } else {
     if (message.mentions.has(client.user.id)) {
       if (
