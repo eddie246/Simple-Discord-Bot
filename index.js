@@ -3,6 +3,7 @@ const Discord = require('discord.js');
 const client = new Discord.Client();
 
 const cleverbot = require('cleverbot-free');
+let contex = [];
 
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
@@ -53,20 +54,28 @@ client.on('message', async (message) => {
          4. .simp: You a simp | Syntax: .simp
         `
       );
-      return
+      return;
+    }
+
+    if (message.content === '.aiClear') {
+      contex = [];
+      message.channel.send('Cleared ai chat context');
+      return;
     }
 
     if (message.content.includes('.ai')) {
-      cleverbot(message.content.slice(2)).then((response) =>
-        message.reply(response)
-      ).catch((err) => message.reply(err));
+      cleverbot(message.content.slice(4), contex).then((response) => {
+        contex = contex.concat([message.content.slice(4), response]);
+        message.reply(response);
 
-      return
+        if (contex.length >= 20) {
+          contex = contex.slice(-20);
+        }
+      });
     }
 
     if (message.content === '.contribute') {
       message.reply('https://github.com/eddie246/Simple-Discord-Bot');
-      return
     }
 
     if (
