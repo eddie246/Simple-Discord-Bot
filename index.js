@@ -8,34 +8,6 @@ const atob = require('atob');
 const Discord = require('discord.js');
 const client = new Discord.Client();
 
-//Gba stuff
-const GameBoyAdvance = require('gbajs');
-const gba = new GameBoyAdvance();
-// let save;
-
-gba.logLevel = gba.LOG_ERROR;
-
-var biosBuf = fs.readFileSync('./node_modules/gbajs/resources/bios.bin');
-gba.setBios(biosBuf);
-gba.load;
-gba.setCanvasMemory();
-
-gba.loadRomFromFile(
-  'src/Pokemon - Fire Red Version (U) (V1.1).gba',
-  function (err, result) {
-    if (err) {
-      console.error('loadRom failed:', err);
-      process.exit(1);
-    }
-    // gba.loadSavedataFromFile('src/');
-    gba.runStable();
-    console.log('Game loaded');
-  }
-);
-
-let idx = 0;
-let keypad = gba.keypad;
-
 //cleverbot stuff
 const cleverbot = require('cleverbot-free');
 let contex = [];
@@ -56,7 +28,78 @@ const commandSchema = new Schema({
   cmds: String,
 });
 
+const saveSchema = new Schema({
+  data: String,
+});
+
 const Command = mongoose.model('command', commandSchema);
+const GbaSave = mongoose.model('gbaSave', saveSchema);
+
+//Gba stuff
+const GameBoyAdvance = require('gbajs');
+const gba = new GameBoyAdvance();
+
+gba.logLevel = gba.LOG_ERROR;
+
+var biosBuf = fs.readFileSync('./node_modules/gbajs/resources/bios.bin');
+gba.setBios(biosBuf);
+gba.load;
+gba.setCanvasMemory();
+
+gba.loadRomFromFile(
+  'src/Pokemon - Fire Red Version (U) (V1.1).gba',
+  async function (err, result) {
+    if (err) {
+      console.error('loadRom failed:', err);
+      process.exit(1);
+    }
+    // gba.loadSavedataFromFile('src/');
+    // const save = fs.readFileSync('src/save.txt', 'utf-8');
+
+    const rawSave = await GbaSave.find({});
+    // console.log(rawSave[0].data);
+    const save = rawSave[0].data;
+    // console.log(save);
+
+    var length = (save.length * 3) / 4;
+    if (save[save.length - 2] == '=') {
+      length -= 2;
+    } else if (save[save.length - 1] == '=') {
+      length -= 1;
+    }
+    var buffer = new ArrayBuffer(length);
+    var view = new Uint8Array(buffer);
+    var bits = save.match(/..../g);
+    for (var i = 0; i + 2 < length; i += 3) {
+      var s = atob(bits.shift());
+      view[i] = s.charCodeAt(0);
+      view[i + 1] = s.charCodeAt(1);
+      view[i + 2] = s.charCodeAt(2);
+    }
+    if (i < length) {
+      var s = atob(bits.shift());
+      view[i++] = s.charCodeAt(0);
+      if (s.length > 1) {
+        view[i++] = s.charCodeAt(1);
+      }
+    }
+    gba.mmu.loadSavedata(buffer);
+    gba.runStable();
+    console.log('Game loaded');
+  }
+);
+
+let idx = 0;
+let keypad = gba.keypad;
+
+let AToggle = false;
+let BToggle = false;
+let UPToggle = false;
+let DOWNToggle = false;
+let LEFTToggle = false;
+let RIGHTToggle = false;
+
+///////////////msg archive
 
 const messageArchive = {};
 
@@ -81,52 +124,185 @@ client.on('message', async (message) => {
   const doc = await Command.find({});
   const docParsed = JSON.parse(doc[0].cmds);
 
+  const filter = (reaction, user) => {
+    return (
+      ['🅰', '⬆', '⬇', '⬅', '➡', '🅱'].includes(reaction.emoji.name) &&
+      user.id === message.author.id
+    );
+  };
+
   function sendGBA() {
     setTimeout(function () {
       /* pngjs: https://github.com/lukeapage/pngjs */
       var png = gba.screenshot();
       png.pack().pipe(fs.createWriteStream('gba' + idx + '.png'));
-      message.channel.send('image placeholder', {
-        files: ['gba0.png'],
-      });
-    }, 500);
+      message.channel
+        .send(
+          `Held down: ${AToggle ? 'A ' : ''}${BToggle ? 'B ' : ''}${
+            UPToggle ? 'UP ' : ''
+          }${DOWNToggle ? 'DOWN ' : ''}${LEFTToggle ? 'LEFT ' : ''}${
+            RIGHTToggle ? 'RIGHT ' : ''
+          }`,
+          {
+            files: ['gba0.png'],
+          }
+        )
+        .then((message) => {
+          try {
+            message.react('🅰');
+            message.react('⬆');
+            message.react('⬇');
+            message.react('⬅');
+            message.react('➡');
+            message.react('🅱');
+          } catch (err) {
+            console.log('pressed early');
+          }
+
+          message
+            .awaitReactions(filter, { max: 1, time: 60000, errors: ['time'] })
+            .then((collected) => {
+              const reaction = collected.first();
+
+              if (reaction.emoji.name === '🅰') {
+                message.delete();
+                keypad.press(keypad.A);
+                sendGBA();
+              } else if (reaction.emoji.name === '🅱') {
+                message.delete();
+                keypad.press(keypad.B);
+                sendGBA();
+              } else if (reaction.emoji.name === '⬆') {
+                message.delete();
+                keypad.press(keypad.UP);
+                sendGBA();
+              } else if (reaction.emoji.name === '⬇') {
+                message.delete();
+                keypad.press(keypad.DOWN);
+                sendGBA();
+              } else if (reaction.emoji.name === '⬅') {
+                message.delete();
+                keypad.press(keypad.LEFT);
+                sendGBA();
+              } else if (reaction.emoji.name === '➡') {
+                message.delete();
+                keypad.press(keypad.RIGHT);
+                sendGBA();
+              }
+            });
+        });
+    }, 1000);
+  }
+
+  function sendGBASingle() {
+    setTimeout(function () {
+      /* pngjs: https://github.com/lukeapage/pngjs */
+      var png = gba.screenshot();
+      png.pack().pipe(fs.createWriteStream('gba' + idx + '.png'));
+      message.channel.send(
+        `Held down: ${AToggle ? 'A ' : ''}${BToggle ? 'B ' : ''}${
+          UPToggle ? 'UP ' : ''
+        }${DOWNToggle ? 'DOWN ' : ''}${LEFTToggle ? 'LEFT ' : ''}${
+          RIGHTToggle ? 'RIGHT ' : ''
+        }`,
+        {
+          files: ['gba0.png'],
+        }
+      );
+    }, 1000);
+  }
+
+  if (message.content === '.show') {
+    sendGBA();
   }
 
   if (message.content.includes('.')) {
     /////////////////////////////////GBA STUFF///////////////////////////
     if (message.content === '.a') {
       keypad.press(keypad.A);
-      sendGBA();
+      sendGBASingle();
     } else if (message.content === '.b') {
       keypad.press(keypad.B);
-      sendGBA();
+      sendGBASingle();
     } else if (message.content === '.b') {
       keypad.press(keypad.B);
-      sendGBA();
+      sendGBASingle();
     } else if (message.content === '.select') {
       keypad.press(keypad.SELECT);
-      sendGBA();
+      sendGBASingle();
     } else if (message.content === '.start') {
       keypad.press(keypad.START);
-      sendGBA();
+      sendGBASingle();
     } else if (message.content === '.r') {
       keypad.press(keypad.RIGHT);
-      sendGBA();
+      sendGBASingle();
     } else if (message.content === '.l') {
       keypad.press(keypad.LEFT);
-      sendGBA();
+      sendGBASingle();
     } else if (message.content === '.u') {
       keypad.press(keypad.UP);
-      sendGBA();
+      sendGBASingle();
     } else if (message.content === '.d') {
       keypad.press(keypad.DOWN);
-      sendGBA();
+      sendGBASingle();
     } else if (message.content === '.sl') {
       keypad.press(keypad.L);
-      sendGBA();
-    } else if (message.content === '.sr') {
-      keypad.press(keypad.R);
-      sendGBA();
+      sendGBASingle();
+    } else if (message.content === '.ha') {
+      /////////////TOGGLES
+      if (AToggle) {
+        keypad.keyup(keypad.A);
+        AToggle = false;
+      } else {
+        keypad.keydown(keypad.A);
+        AToggle = true;
+      }
+      sendGBASingle();
+    } else if (message.content === '.hb') {
+      if (BToggle) {
+        keypad.keyup(keypad.B);
+        BToggle = false;
+      } else {
+        keypad.keydown(keypad.B);
+        BToggle = true;
+      }
+      sendGBASingle();
+    } else if (message.content === '.hl') {
+      if (LEFTToggle) {
+        keypad.keyup(keypad.LEFT);
+        LEFTToggle = false;
+      } else {
+        keypad.keydown(keypad.LEFT);
+        LEFTToggle = true;
+      }
+      sendGBASingle();
+    } else if (message.content === '.hr') {
+      if (RIGHTToggle) {
+        keypad.keyup(keypad.RIGHT);
+        RIGHTToggle = false;
+      } else {
+        keypad.keydown(keypad.RIGHT);
+        RIGHTToggle = true;
+      }
+      sendGBASingle();
+    } else if (message.content === '.hu') {
+      if (UPToggle) {
+        keypad.keyup(keypad.UP);
+        UPToggle = false;
+      } else {
+        keypad.keydown(keypad.UP);
+        UPToggle = true;
+      }
+      sendGBASingle();
+    } else if (message.content === '.hd') {
+      if (DOWNToggle) {
+        keypad.keyup(keypad.DOWN);
+        DOWNToggle = false;
+      } else {
+        keypad.keydown(keypad.DOWN);
+        DOWNToggle = true;
+      }
+      sendGBASingle();
     } else if (message.content === '.save') {
       let save = gba.mmu.save;
 
@@ -147,34 +323,17 @@ client.on('message', async (message) => {
       }
       save = data.join('');
 
-      fs.writeFileSync('src/save.txt', save);
-    } else if (message.content === '.load') {
-      const save = fs.readFileSync('src/save.txt', 'utf-8');
-      const saveParsed = save;
+      // fs.writeFileSync('src/save.txt', save);
 
-      var length = (save.length * 3) / 4;
-      if (save[save.length - 2] == '=') {
-        length -= 2;
-      } else if (save[save.length - 1] == '=') {
-        length -= 1;
-      }
-      var buffer = new ArrayBuffer(length);
-      var view = new Uint8Array(buffer);
-      var bits = save.match(/..../g);
-      for (var i = 0; i + 2 < length; i += 3) {
-        var s = atob(bits.shift());
-        view[i] = s.charCodeAt(0);
-        view[i + 1] = s.charCodeAt(1);
-        view[i + 2] = s.charCodeAt(2);
-      }
-      if (i < length) {
-        var s = atob(bits.shift());
-        view[i++] = s.charCodeAt(0);
-        if (s.length > 1) {
-          view[i++] = s.charCodeAt(1);
-        }
-      }
-      gba.mmu.loadSavedata(buffer);
+      // GbaSave.create({ data: save });
+
+      await GbaSave.updateOne({}, { $set: { data: save } });
+
+      message.reply(
+        'To save all progress correctly, make sure to save ingame first, then use .save'
+      );
+
+      console.log('Data Saved to MongoDB');
     }
 
     if (message.content === '.help') {
