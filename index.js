@@ -189,7 +189,12 @@ client.on('message', async (message) => {
                 keypad.press(keypad.RIGHT);
                 sendGBA();
               }
-            });
+            })
+            .catch((err) =>
+              message.channel.send(
+                'Emote Listener Timed Out, Use .show to restart!'
+              )
+            );
         });
     }, 1000);
   }
@@ -214,6 +219,14 @@ client.on('message', async (message) => {
 
   if (message.content === '.show') {
     sendGBA();
+    return;
+  }
+
+  if (message.content === '.controls') {
+    message.reply(
+      'KeyPress: .u = press up | .d  = press down | .l = press left | .r = press right | .a = press a | .b = press b | .select = press select | .start = press start | .sl = press shoulder left | .sr = press shoulder right ||| KeyHold: .hu = toggle up | .hd = toggle down | .hl = toggle left | .hr = toggle right | .ha = toggle a | .hb = toggle b'
+    );
+    return;
   }
 
   if (message.content.includes('.')) {
