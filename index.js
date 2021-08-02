@@ -3,6 +3,7 @@ const fs = require('fs');
 require('dotenv').config();
 const btoa = require('btoa');
 const atob = require('atob');
+const fetch = require('node-fetch');
 
 //discord stuff
 const Discord = require('discord.js');
@@ -358,6 +359,13 @@ client.on('message', async (message) => {
         `
       );
       return;
+    }
+
+    if (message.content === '.memes') {
+      const res = await fetch('https://meme-api.herokuapp.com/gimme/memes');
+      const data = await res.json();
+
+      message.channel.send(data.url);
     }
 
     if (message.content === '.aiClear') {
